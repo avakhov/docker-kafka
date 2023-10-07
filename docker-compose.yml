@@ -1,0 +1,35 @@
+version: '3'
+networks:
+  kafka-net: {}
+
+services:
+  zoo:
+    image: zookeeper:3.6.4
+    environment:
+      ZOO_MY_ID: 1
+      JMXDISABLE: true
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+    volumes:
+      - ./.data/zoo-data:/data"
+      - ./.data/zoo-datalog:/datalog"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.1
+    depends_on:
+      - zoo
+    environment:
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://127.0.0.1:9092"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_BROKER_ID: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - kafka-net
+    volumes:
+      - ./.data/kafka-data:/var/lib/kafka/data
+      - ./.data/kafka-logs:/var/lib/kafka/log
