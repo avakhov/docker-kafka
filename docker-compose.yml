@@ -14,7 +14,7 @@ services:
       - kafka-net
 
   kafka:
-    image: avakhov/kafka:v1
+    image: confluentinc/cp-kafka:7.5.1
     depends_on:
       - zoo
     environment:

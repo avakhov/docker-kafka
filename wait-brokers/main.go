@@ -42,6 +42,8 @@ func doMain(zoo_url string, brokers []string) error {
 		current, _, err := conn.Children("/brokers/ids")
 		if err == zk.ErrNoNode {
 			fmt.Printf("no brokers found, waiting...\n")
+		} else if err != nil && err.Error() == "zk: could not connect to a server" {
+			fmt.Printf("wait connection to zookeeper...\n")
 		} else if err != nil {
 			return wrapError(err)
 		} else {
