@@ -1,14 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"time"
-  "reflect"
 	"github.com/samuel/go-zookeeper/zk"
-  "os"
-  "strings"
-  "runtime"
-  "errors"
+	"os"
+	"reflect"
+	"runtime"
+	"strings"
+	"time"
 )
 
 func wrapError(in interface{}, a ...any) error {
@@ -34,33 +34,36 @@ func wrapError(in interface{}, a ...any) error {
 func doMain(zoo_url string, brokers []string) error {
 	conn, _, err := zk.Connect([]string{zoo_url}, time.Second)
 	if err != nil {
-    return wrapError(err)
+		return wrapError(err)
 	}
 	defer conn.Close()
 
-  for {
-    current, _, err := conn.Children("/brokers/ids")
-    if err != nil {
-      return wrapError(err)
-    }
-    fmt.Printf("current brokers: '%s'\n", strings.Join(current, ", "))
-    if reflect.DeepEqual(current, brokers) {
-      break
-    }
-    time.Sleep(1 * time.Second)
-  }
-  return nil
+	for {
+		current, _, err := conn.Children("/brokers/ids")
+		if err == zk.ErrNoNode {
+			fmt.Printf("no brokers found, waiting...\n")
+		} else if err != nil {
+			return wrapError(err)
+		} else {
+			fmt.Printf("current brokers: '%s'\n", strings.Join(current, ", "))
+			if reflect.DeepEqual(current, brokers) {
+				break
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return nil
 }
 
 func main() {
-  fmt.Printf("Starting kafka-wait-brokers\n")
-  if len(os.Args) < 3 {
-    fmt.Printf("Usage: ./kafka-wait-brokers <zookeeper_url> [kafka_broker1 kafka_broker2 ...]\n")
-    os.Exit(1)
-  }
-  err := doMain(os.Args[1], os.Args[2:])
-  if err != nil {
-    fmt.Printf("ERROR: %s\n", err.Error())
-    os.Exit(1)
-  }
+	fmt.Printf("Starting kafka-wait-brokers\n")
+	if len(os.Args) < 3 {
+		fmt.Printf("Usage: ./kafka-wait-brokers <zookeeper_url> [kafka_broker1 kafka_broker2 ...]\n")
+		os.Exit(1)
+	}
+	err := doMain(os.Args[1], os.Args[2:])
+	if err != nil {
+		fmt.Printf("ERROR: %s\n", err.Error())
+		os.Exit(1)
+	}
 }

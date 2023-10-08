@@ -12,12 +12,9 @@ services:
       - "2181:2181"
     networks:
       - kafka-net
-    volumes:
-      - ./.data/zoo-data:/data"
-      - ./.data/zoo-datalog:/datalog"
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.1
+    image: avakhov/kafka:v1
     depends_on:
       - zoo
     environment:
@@ -30,6 +27,3 @@ services:
       - "9092:9092"
     networks:
       - kafka-net
-    volumes:
-      - ./.data/kafka-data:/var/lib/kafka/data
-      - ./.data/kafka-logs:/var/lib/kafka/log
